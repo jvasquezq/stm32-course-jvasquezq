@@ -21,13 +21,19 @@
 #include "stm32f4xx.h"
 
 //definicion de cabeceras - headers
-void init_app();
+void init_gpio();
+
+void init_tim3();
 
 
 int main(void)
 {
     // configuring peripherals before starting the main-loop
-    init_app();
+    init_gpio();
+
+    //Cargamos la configuracion TIM3 - interrupcion cada 0.25 s
+
+    init_tim3();
 
 
     /* Loop forever */
@@ -39,7 +45,7 @@ int main(void)
 }
 
 /**/
-void init_app(){
+void init_gpio(){
     //clock signal for PA.
     //Activando la señal de reloj para el puerto A
     RCC->AHB1ENR &= ~RCC_AHB1ENR_GPIOAEN; //Limpiando la posicion
@@ -47,7 +53,7 @@ void init_app(){
 
     //Configurando el pin A5
     GPIOA->MODER &= ~(0b11 << GPIO_MODER_MODE5_Pos); //Limpiando la posicion
-    GPIOA->MODER |= ~(0b01 << GPIO_MODER_MODE5_Pos); //Configurando A5 como salida 
+    GPIOA->MODER |= (0b01 << GPIO_MODER_MODE5_Pos); //Configurando A5 como salida 
 
     GPIOA->OTYPER &= ~GPIO_OTYPER_OT5; //Limpiando la posicion, config push-pull
 
@@ -56,13 +62,13 @@ void init_app(){
 
     GPIOA->PUPDR &= ~(0b11 << GPIO_PUPDR_PUPD5_Pos); //Limpia, desactiva las PUPDR
     
-    GPIOA->ODR |= (GPIO_ODR_OD5); //Encender el pin A5
+    GPIOA->ODR &= ~(GPIO_ODR_OD5); //Encender el pin A5
 
 
 }
  
 
-void init_app(){
+void init_tim3(){
     //Señal de reloj para el TIM3
     RCC->APB1ENR &= ~RCC_APB1ENR_TIM3EN; //Limpiar la posicion
     RCC->APB1ENR |= RCC_APB1ENR_TIM3EN; //Activar la señal de reloj 
@@ -73,16 +79,16 @@ void init_app(){
 
     TIM3->CR1 &= ~(0x3 << TIM_CR1_CKD_Pos); //Limpiamos, dejar la señal de reloj completa
     TIM3->CR1 &= ~(TIM_CR1_ARPE); //Limiando la posicion 
-    TIM3->CR1 |= ~(TIM_CR1_ARPE); //Activando el preload para el ARR
+    TIM3->CR1 |= (TIM_CR1_ARPE); //Activando el preload para el ARR
     TIM3->CR1 &= ~TIM_CR1_DIR; //Limpiando, contador de forma ascendente
 
-    TIM3->DIER |=
+    TIM3->DIER |= TIM_DIER_UIE; // Activamos la interrupcion  debida a un evento aqui
 
 
     //Configuramos el NVIC
-    NVIC_EnableIRQ(IRQn: TIM3_IRQn); //Activamos la interrupcion del NVIC
+    __NVIC_EnableIRQ(TIM3_IRQn); //Activamos la interrupcion del NVIC
 
-    TIM3->CR1 |=
+    TIM3->CR1 |= TIM_CR1_CEN; //Activamos el contador 
 
 }
 
@@ -91,5 +97,13 @@ void init_app(){
 *en el archivo de startup_stm32f411xx.s (no modificar este archivo)*/
 
 void TIM3_IRQHandelr (void){
+
+    //Operacion logica de toda la variable y verificando si la bandera esta levantada 
+    if (TIM3->SR & TIM_SR_UIF) {
+        TIM3->SR &= ~TIM_SR_UIF; //Limpiando la bandera 
+
+        GPIOA->ODR ^=GPIO_ODR_OD5;
+    
+    }
 
 }
