@@ -21,20 +21,7 @@
 
 int main(void)
 {
-    RCC->AHB1ENR = (1 << 0); //Habilitar señal de reloj para GPIOA (Bit 0)
     
-    GPIOA->MODER &= ~(0b11 << (5*2)); //Limpiar bits 11:10
-    GPIOA->MODER |= (0b01 <<(5*2)); //Asignar 01 (salida)
-
-    GPIOA->OTYPER &= ~(0b1 << 5);
-
-    GPIOA->OSPEEDR &= ~(0b11 << (5*2));
-
-    GPIOA->PUPDR &= ~(0b11 << (5*2));
-
-    //Encendiendo el led A5
-    GPIOA->ODR &= ~(1 << 5); // Limpiando la posicion del registro del ODR
-    GPIOA->ODR |= (1 << 5); //Encendiendo el led
     
     /* Loop forever */
 	while (1)

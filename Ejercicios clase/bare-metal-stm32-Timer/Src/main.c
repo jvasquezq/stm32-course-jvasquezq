@@ -96,7 +96,7 @@ void init_tim3(){
 *El nombre de esta funcion se toma del vector interrupcion definido 
 *en el archivo de startup_stm32f411xx.s (no modificar este archivo)*/
 
-void TIM3_IRQHandelr (void){
+void TIM3_IRQHandler (void){
 
     //Operacion logica de toda la variable y verificando si la bandera esta levantada 
     if (TIM3->SR & TIM_SR_UIF) {
